@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""This is a CLI program that gets stuff from Artportalens API and prints them to stdout."""
+"""This is a CLI program that gets stuff from Artdatabanken's API and prints it to stdout."""
 
 import sys
 import argparse
@@ -40,7 +40,7 @@ def today_RFC3339():
     return today.strftime("%Y-%m-%d")
 
 def main():
-    parser = argparse.ArgumentParser(description='''CLI-program for getting stuff from the Artportalen API.''')
+    parser = argparse.ArgumentParser(description='''CLI-program for getting stuff from Ardatabanken's API.''')
     parser.add_argument('-v', '--verbose', action='store_true', default=False,
                         help="print info about what's going on [False].")
     parser.add_argument('-c', '--conf-file-path', default=DEFAULT_CONF_FILE_PATH,
@@ -51,8 +51,8 @@ def main():
                         help="API authentication (subscription) key [value of environment variable %s]" % (AP_API_KEY_ENV_NAME))
     parser.add_argument('--use-production-api', action='store_true', default=False,
                         help="Use the production (and not the sandbox)) API [False]")
-    parser.add_argument('--taxon',
-                        help="Taxon")
+    parser.add_argument('--taxon-id',
+                        help="Artdatabankens Taxon id ")
     parser.add_argument('--get-observations', action='store_true', default=False,
                         help="Get observations [False]")
     parser.add_argument('--from-date', default="1900-01-01",
@@ -82,13 +82,13 @@ def main():
             print('HTTP Response body:')
         pprint.pprint(r.json())
     if args.get_observations:
-        if not args.taxon:
-            print("Error: No taxon specified (-t)")
+        if not args.taxon_id:
+            print("Error: No taxon id specified (--taxon-id)")
             sys.exit(2)
         url = '%s%s%s' % (AP_API_ROOT_URL,
                           api,
                           'sightings?taxonId=%s&dateFrom=%s&dateTo=%s&offset=%s&limit=%s' % (
-                          args.taxon,
+                          args.taxon_id,
                           args.from_date,
                           args.to_date,
                           args.offset,
