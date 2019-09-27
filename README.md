@@ -4,7 +4,7 @@ Assorted tools to interact with [Artdatabankens](https://api-portal.artdatabanke
 
 # Requirements
 
-It is developed with Python 3.6. The current dependencies are to Python3 standard modules. See below.
+It is developed with Python 3.6. The current dependencies are to Python3 standard modules and 'requests'. See below.
 
 # Development
 
