@@ -27,15 +27,15 @@ $ pip install -r requirements.txt
 
 # Usage
 
-If you want to know what `adb-get.py` can do, without reading the source code run it with:
+If you want to know what `adb-get.py` can do, without reading the source code, run it with:
 ```
 $ ./adb-get.py -h
 ```
 
-where <YOUR-API-KEY> is the API subscription key you obtained when registering
-for an API account with Artdatabanken.
-
-To get the first 200 observations of Tajgasångare since 1900-01-01 do:
+To get the first 200 observations of Tajgasångare or Yellow-browed warbler (*Phylloscopus inornatus*), with Artdatabanken taxon id 205835, since 1900-01-01 do:
 ```
 $ ./adb-get.py -k<YOUR-API-KEY> --get-observations --taxon-id=205835 -v
 ```
+
+where **\<YOUR-API-KEY\>** is the API subscription key you obtained when registering
+for an API account with Artdatabanken.
