@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 
-"""This is a CLI program that gets stuff from Artdatabanken's API and prints it to stdout."""
+"""This is a CLI program that gets stuff from the Artdatabanken API:s and prints it to stdout."""
 
 import sys
 import argparse
 import os
 import os.path
-from datetime import date
+from datetime import datetime
 import requests
 import pprint
 #from requests_oauthlib import OAuth2Session
 
 # Constants
 DEFAULT_CONF_FILE_PATH = 'ap-get.conf'
+DEFAULT_FROM_DATE_RFC3339 = '1900-01-01T00:00'
 AP_API_KEY_ENV_NAME = 'AP-API-KEY'
 AP_API_ROOT_URL = 'https://api.artdatabanken.se'
 AP_API_OBSERVATIONS_PATH = '/observations-r/v2/'
@@ -36,11 +37,12 @@ def ap_api_key():
 
 
 def today_RFC3339():
-    today = date.today()
-    return today.strftime("%Y-%m-%d")
+    """Today as an RFC 3339 / ISO 8601 date and time string, in minute resolution."""
+    today = datetime.now()
+    return today.isoformat(timespec='minutes')
 
 def main():
-    parser = argparse.ArgumentParser(description='''CLI-program for getting stuff from Ardatabanken's API.''')
+    parser = argparse.ArgumentParser(description='''CLI-program for getting stuff from the Artdatabanken API:s.''')
     parser.add_argument('-v', '--verbose', action='store_true', default=False,
                         help="print info about what's going on [False].")
     parser.add_argument('-c', '--conf-file-path', default=DEFAULT_CONF_FILE_PATH,
@@ -51,14 +53,15 @@ def main():
                         help="API authentication (subscription) key [value of environment variable %s]" % (AP_API_KEY_ENV_NAME))
     parser.add_argument('--use-production-api', action='store_true', default=False,
                         help="Use the production (and not the sandbox)) API [False]")
-    parser.add_argument('--taxon-id',
-                        help="Artdatabankens Taxon id ")
+    parser.add_argument('--taxon_id',
+                        help="Artdatabankens taxon id")
     parser.add_argument('--get-observations', action='store_true', default=False,
                         help="Get observations [False]")
-    parser.add_argument('--from-date', default="1900-01-01",
-                        help="From date [1900-01-01]")
-    parser.add_argument('--to-date', default=today_RFC3339(),
-                        help="To date [%s]" % (today_RFC3339()))
+    parser.add_argument('--from-date', default=DEFAULT_FROM_DATE_RFC3339,
+                        help="From date [%s]" % (DEFAULT_FROM_DATE_RFC3339))
+    s = today_RFC3339()
+    parser.add_argument('--to-date', default=s,
+                        help="To date [%s]" % (s))
     parser.add_argument('--offset', default=0,
                         help="Offset [0]")
     parser.add_argument('--limit', default=200,
