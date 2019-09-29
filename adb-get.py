@@ -7,6 +7,7 @@ import argparse
 import os
 import os.path
 from datetime import datetime
+import dateutil.parser
 import requests
 import pprint
 #from requests_oauthlib import OAuth2Session
@@ -78,6 +79,46 @@ def get_taxon_by_id(args, species_url, taxon_id):
         return r.json()
 
 
+def pretty_print_taxon(t):
+    """Pretty print the taxon `t` to stdout."""
+    print("%s (%s) taxon id: %s" % (t['swedishName'].capitalize(),
+                                    t['scientificName'],
+                                    t['taxonId']))
+    print("%s (%s)" % (t['speciesData']['taxonRelatedInformation']['swedishPresence'],
+                       t['speciesData']['taxonRelatedInformation']['immigrationHistory']))
+    for item in t['speciesData']['redlistInfo']:
+        print("%s:" % (item['period']['name']))
+        print(" Kategori: %s" % (item['category']))
+        print(" Text: %s" % (item['criterionText']))
+
+
+def pretty_print_observation(o):
+    """Pretty print the observation `o` to stdout."""
+    fdate = dateutil.parser.parse(o['startDate'])
+    edate = dateutil.parser.parse(o['endDate'])
+    if fdate != edate:
+        if fdate.hour != 0 and fdate.minute != 0 and edate.hour !=0 and edate.minute != 0:
+            print("%s %s-%s" % ('{:%Y-%m-%d}'.format(fdate), '{:%H:%M}'.format(fdate), '{:%H:%M}'.format(edate)))
+        else:
+            print("%s" % ('{:%Y-%m-%d}'.format(fdate)))
+    else:
+        if fdate.hour != 0 and fdate.minute != 0:
+            print("%s" % ('{:%Y-%m-%d %H:%M}'.format(fdate)))
+        else:
+            print("%s" % ('{:%Y-%m-%d}'.format(fdate)))
+    print(" Upptäcksmetod: %s" % (o['discoveryMethod']))
+    print(" Rapportör: %s" % (o['owner']))
+    print(" Observatörer: %s" % (o['sightingObservers']))
+    print(" Var: %s" % (o['site']['presentationName']))
+    if o['publicComment']:
+        s = o['publicComment'].strip()
+    else:
+        s = ""
+    print(" Kommentar: %s" % (s))
+    print(" Google Maps location: %s" % ("https://www.google.com/maps/@?api=1&map_action=map&center=56.711061,16.3535513&zoom=12&basemap=terrain"))
+    print(" Open Street Maps location: %s" % ("https://www.openstreetmap.org/?mlat=-38.3653&mlon=144.9069#map=9/-38.3653/144.9069"))
+
+
 def today_RFC3339():
     """Today as an RFC 3339 / ISO 8601 date and time string, in minute resolution."""
     today = datetime.now()
@@ -104,6 +145,8 @@ def main():
                         help="Artdatabanken's taxon id")
     parser.add_argument('--taxon-name',
                         help="Artdatabanken's taxon name in Swedish")
+    parser.add_argument('--pretty-print', action='store_true', default=False,
+                        help="Pretty print all info.")
     parser.add_argument('--get-observations', action='store_true', default=False,
                         help="Get observations [False]")
     parser.add_argument('--from-date', default=DEFAULT_FROM_DATE_RFC3339,
@@ -183,12 +226,27 @@ def main():
             print('HTTP Response headers:')
             print(r.headers)
             print('HTTP Response body:')
-        pprint.pprint(r.json())
+        if args.pretty_print:
+            for observation in reversed(r.json()['data']):
+                pretty_print_observation(observation)
+            fdate = dateutil.parser.parse(r.json()['data'][0]['startDate'])
+            tdate = dateutil.parser.parse(r.json()['data'][-1]['startDate'])
+            print("%s" % (50*'-'))
+            print("%d observations (of total %s) shown of %s between %s and %s" % (len(r.json()['data']),
+                                                                                   r.json()['pager']['totalCount'],
+                                                                                   args.taxon_name,
+                                                                                   '{:%Y-%m-%d}'.format(fdate),
+                                                                                   '{:%Y-%m-%d}'.format(tdate)))
+        else:
+            pprint.pprint(r.json())
         sys.exit(0)
     if args.taxon_id:
         t = get_taxon_by_id(args, species_url, args.taxon_id)
         if t:
-            pprint.pprint(t)
+            if args.pretty_print:
+                pretty_print_taxon(t[0])
+            else:
+                pprint.pprint(t)
         else:
             print("Error: No taxon with id '%s' found in Artdatabanken's Species API" % (args.taxon_id))
             sys.exit(3)
@@ -199,7 +257,10 @@ def main():
             print("Error: No taxon with name '%s' found in Artdatabanken's Species API." % (args.taxon_name))
             sys.exit(4)
         t = get_taxon_by_id(args, species_url, taxon_id)
-        pprint.pprint(t)
+        if args.pretty_print:
+            pretty_print_taxon (t[0])
+        else:
+            pprint.pprint(t)
         sys.exit(0)
 
 
