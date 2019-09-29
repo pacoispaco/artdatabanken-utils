@@ -34,8 +34,17 @@ $ ./adb-get.py -h
 
 To get the first 200 observations of Tajgasångare or Yellow-browed warbler (*Phylloscopus inornatus*), with Artdatabanken taxon id 205835, since 1900-01-01 do:
 ```
-$ ./adb-get.py -k<YOUR-API-KEY> --get-observations --taxon-id=205835 -v
+$ ./adb-get.py --get-observations --taxon-id=205835
 ```
 
-where **\<YOUR-API-KEY\>** is the API subscription key you obtained when registering
-for an API account with Artdatabanken.
+Or get them by taxon name with:
+```
+$ ./adb-get.py --get-observations --taxon-name=Tajgasångare
+```
+
+You can pass your API keys as options with the `--species-api-key` and the `--observations-api-key`, but it is easier to set them as environment variables:
+```
+$ export ADB_SPECIES_API_KEY=<YOUR-SPECIES-API-KEY>
+$ export ADB_OBSERVATIONS_API_KEY=<YOUR-OBSERVATIONS-API-KEY>
+```
+so you don't have to provide them as options each time you invoke `adb-get.py`. The **\<YOUR-SPECIES-API-KEY\>** and **\<YOUR-OBSERVATIONS-API-KEY\>** are the API subscription keys you obtained when registering for the API account with Artdatabanken and subscribed to the Species and Observations API:s.
