@@ -21,6 +21,7 @@ ADB_API_ROOT_URL = 'https://api.artdatabanken.se'
 ADB_SPECIES_API_PATH = '/information/v1/speciesdataservice/v1/'
 ADB_OBSERVATIONS_API_PATH = '/observations-r/v2/'
 ADB_OBSERVATIONS_API_SANDBOX_PATH = '/sandbox-observations-r/v2/'
+ADB_COORDINATSYSTEM_WGS_84_ID = 10
 
 
 def auth_headers(api_key, auth_token=None):
@@ -115,8 +116,17 @@ def pretty_print_observation(o):
     else:
         s = ""
     print(" Kommentar: %s" % (s))
-    print(" Google Maps location: %s" % ("https://www.google.com/maps/@?api=1&map_action=map&center=56.711061,16.3535513&zoom=12&basemap=terrain"))
-    print(" Open Street Maps location: %s" % ("https://www.openstreetmap.org/?mlat=-38.3653&mlon=144.9069#map=9/-38.3653/144.9069"))
+    # Get WGS 84 coordinates so we can create URL:s for Google Maps and Open Street Map
+    for c in o['site']['coordinates']:
+        if c['coordinateSystemId'] == ADB_COORDINATSYSTEM_WGS_84_ID:
+            easting = c['easting']
+            northing = c['northing']
+    gm_url = "https://www.google.com/maps/search/?api=1&query=%s,%s" % (northing, easting)
+    osm_url = "https://www.openstreetmap.org/?mlat=%s&mlon=%s" % (northing, easting)
+    print(" Google Maps location: %s" % (gm_url))
+    print(" Open Street Maps location: %s" % (osm_url))
+#    print(" Google Maps location: %s" % ("https://www.google.com/maps/@?api=1&map_action=map&center=56.711061,16.3535513&zoom=12&basemap=terrain"))
+#    print(" Open Street Maps location: %s" % ("https://www.openstreetmap.org/?mlat=-38.3653&mlon=144.9069#map=9/-38.3653/144.9069"))
 
 
 def today_RFC3339():
