@@ -49,7 +49,7 @@ def observations_api_key():
 
 
 def get_taxon_id_by_name(args, species_url, taxon_name):
-    """Artdatabanken's taxon id for the taxon with the given `taxon_name`. Returns None if not found. """
+    """Artdatabanken's taxon id for the taxon with the given 'taxon_name'. Returns None if not found. """
     url = '%s%s' % (species_url, 'speciesdata/search?searchString=%s' % (taxon_name))
     r = requests.get(url, headers=auth_headers(args.species_api_key))
     if args.verbose:
@@ -65,7 +65,7 @@ def get_taxon_id_by_name(args, species_url, taxon_name):
 
 
 def get_taxon_by_id(args, species_url, taxon_id):
-    """Artdatabanken's taxon data for the taxon with the given `taxon_id`. Returns None if not found. """
+    """Artdatabanken's taxon data for the taxon with the given 'taxon_id'. Returns None if not found. """
     url = '%s%s' % (species_url, 'speciesdata?taxa=%s' % (taxon_id))
     r = requests.get(url, headers=auth_headers(args.species_api_key))
     if args.verbose:
@@ -80,8 +80,32 @@ def get_taxon_by_id(args, species_url, taxon_id):
         return r.json()
 
 
+def get_observations (args, observations_url, taxon_id):
+    """Artdatabanken's observations for the taxon with the given 'taxon_id', Returns a dictionary
+       with four keys; 'observations' which contains the list of observations retrieved in time
+       order, 'total_count' which contains the total count of observationsi, and 'from_date' and
+       'to_date' which contain the dates of the first and last observation returned."""
+    url = '%s%s' % (observations_url,
+                    'sightings?taxonId=%s&dateFrom=%s&dateTo=%s&offset=%s&limit=%s' % (
+                        taxon_id,
+                        args.from_date,
+                        args.to_date,
+                        args.offset,
+                        args.limit))
+    r = requests.get(url, headers=auth_headers(args.observations_api_key))
+    if args.verbose:
+        print('GET %s' % url)
+        print('HTTP Status code: %s' % (r.status_code))
+        print('HTTP Response headers:')
+        print(r.headers)
+        print('HTTP Response body:')
+    return {'observations': list(reversed(r.json()['data'])),
+            'total_count': r.json()['pager']['totalCount'],
+            'from_date': r.json()['data'][0]['startDate'],
+            'to_date': r.json()['data'][-1]['startDate']}
+
 def pretty_print_taxon(t):
-    """Pretty print the taxon `t` to stdout."""
+    """Pretty print the taxon 't' to stdout."""
     print("%s (%s) taxon id: %s" % (t['swedishName'].capitalize(),
                                     t['scientificName'],
                                     t['taxonId']))
@@ -94,7 +118,7 @@ def pretty_print_taxon(t):
 
 
 def pretty_print_observation(o):
-    """Pretty print the observation `o` to stdout."""
+    """Pretty print the observation 'o' to stdout."""
     fdate = dateutil.parser.parse(o['startDate'])
     edate = dateutil.parser.parse(o['endDate'])
     if fdate != edate:
@@ -222,33 +246,21 @@ def main():
                     sys.exit(3)
         else:
             taxon_id = args.taxon_id
-        url = '%s%s' % (observations_url,
-                        'sightings?taxonId=%s&dateFrom=%s&dateTo=%s&offset=%s&limit=%s' % (
-                            taxon_id,
-                            args.from_date,
-                            args.to_date,
-                            args.offset,
-                            args.limit))
-        r = requests.get(url, headers=auth_headers(args.observations_api_key))
-        if args.verbose:
-            print('GET %s' % url)
-            print('HTTP Status code: %s' % (r.status_code))
-            print('HTTP Response headers:')
-            print(r.headers)
-            print('HTTP Response body:')
+        result = get_observations(args, observations_url, taxon_id)
         if args.pretty_print:
-            for observation in reversed(r.json()['data']):
+            for observation in result['observations']:
                 pretty_print_observation(observation)
-            fdate = dateutil.parser.parse(r.json()['data'][0]['startDate'])
-            tdate = dateutil.parser.parse(r.json()['data'][-1]['startDate'])
+            fdate = dateutil.parser.parse(result['from_date'])
+            tdate = dateutil.parser.parse(result['to_date'])
             print("%s" % (50*'-'))
-            print("%d observations (of total %s) shown of %s between %s and %s" % (len(r.json()['data']),
-                                                                                   r.json()['pager']['totalCount'],
+            print("%d observations (of total %s) shown of %s between %s and %s" % (len(result['observations']),
+                                                                                   result['total_count'],
                                                                                    args.taxon_name,
                                                                                    '{:%Y-%m-%d}'.format(fdate),
                                                                                    '{:%Y-%m-%d}'.format(tdate)))
         else:
-            pprint.pprint(r.json())
+            for observation in result['observations']:
+                pprint.pprint(observation)
         sys.exit(0)
     if args.taxon_id:
         t = get_taxon_by_id(args, species_url, args.taxon_id)
