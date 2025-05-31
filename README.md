@@ -1,44 +1,57 @@
 # artdatabanken-utils
 
-Assorted tools to interact with [Artdatabankens](https://api-portal.artdatabanken.se/) API:s. As of February 13, there are five API:s described here: https://api-portal.artdatabanken.se/docs/services.
+This is a personal project to investigate what can be and what can't be done with with [Artdatabankens](https://api-portal.artdatabanken.se/) API:s. As of February 13, 2025, there are five API:s described here: https://api-portal.artdatabanken.se/docs/services.
+
+Artportalen is a public Swedish crowd science service for registering species observations. It is developed and run by the Swedish Species Information Centre" at the Swedish University of Agricultural Sciences (SLU - Sveriges Lantbruksuniversitet).
 
 # Requirements
 
-It is developed with Python 3.6. The current dependencies are to Python3 standard modules and 'requests'. See below.
+It is developed with Python 3. The current dependencies are to Python3 standard modules and  the 'requests' module.
 
-# About the utils
+In order to call the Artdatabanken API:s you need to register and account there and get API keys for the API:s you intend to use. These tools currently use the Obeservations API and the Species API.
 
-There are two main components:
+# To get started
 
-* **obsapi.py** is a Python module for invoking the "Species Observation System API".
-* **adb-get.py** is a Python CLI-program for making calls to the "Artfakta - Species information API", the "Species Observation System API" and an older "Observations Sandbox API".
-
-Note that use of all of the above API:S require you to have API-keys for each API.
-
-There is also [Postman API collections resource]("artdatbankens-apis.postman.json") that can be imported into Postman for trying out some API calls.
-
-# Development
-
-Set up the development environment with:
-
- 1. Clone the git repo.
- 2. Create a virtual env:
+Clone the repo:
+```bash
+git clone URL-TO-REPO
 ```
-$ virtualenv -p python3 env
-```
- 3. Jump into the virtual env:
-```
-$ source env/bin/activate
-```
- 4. Install dependent packages with:
-```
-$ pip install -r requirements.txt
-```
- 5. Start hacking!
 
-# Usage
+Create a virtual environment:
+```bash
+virtualenv -p python3 env
+```
 
-If you want to know what `adb-get.py` can do, without reading the source code, run it with:
+Install the requirements:
+```bash
+pip install -r requirements.txt
+```
+
+# Trying out the Artportalen API:s
+
+You can always try out the API:s with Postman or command line tools like curl, wget or httpie.
+
+This repo contains a [Postman API collections resource]("artdatbankens-apis.postman.json") that can be imported into Postman for trying out some API calls.
+
+The repo also contain a simple command line program **apget.py** which can be used to try out, learn and get data from the Artportalen API:s. See below.
+
+# Design
+
+There is a module **artportalen.py** which contains a few methods for calling the Artportalen API:s. This module is intended to be reusable. It replaces a first attempt called **obsapi.py**.
+
+The command line program **apget.py** uses the *artportalen.py** module, and is used when developing that module. It also showcases how the module can and is intended to be used. It replaces a first attempt **adb_get.py**.
+
+## apget.py
+
+The program uses the module **obsapi**. You need two API keys to be set as the environment variables `ADB_OBSERVATIONS_API_KEY` and `ADB_SPECIES_API_KEY` for the program to work. Make sure you are in the local virtual environment and run:
+
+```bash
+(env) $ export ADB_OBSERVATIONS_API_KEY=<API-gramKEY-1>
+(env) $ export ADB_SPECIES_API_KEY=<API-KEY-2>
+(env) $ ./apget.py
+```
+
+If you want to know what `apget.py` can do run it with:
 ```
 $ ./adb-get.py -h
 ```
@@ -52,11 +65,3 @@ Or get them by taxon name with:
 ```
 $ ./adb-get.py --get-observations --taxon-name=Tajgasångare
 ```
-
-You can pass your API keys as options with the `--species-api-key` and the `--observations-api-key`, but it is easier to set them as environment variables:
-```
-$ export ADB_SPECIES_API_KEY=<YOUR-SPECIES-API-KEY>
-$ export ADB_OBSERVATIONS_SANDBOX_API_KEY=<YOUR-OBSERVATIONS-SANDBOX-API-KEY>
-$ export ADB_OBSERVATIONS_API_KEY=<YOUR_OBSERVATIONS-API-KEY>
-```
-so you don't have to provide them as options each time you invoke `adb-get.py`.
