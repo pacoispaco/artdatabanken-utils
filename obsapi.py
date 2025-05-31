@@ -1,4 +1,5 @@
-# Module for accessing Artdatabankens Species Observation System API. For more information see:
+# Module for accessing Artdatabankens Species Observation System API, aka SOS API.
+# For more information see:
 #   https://api-portal.artdatabanken.se/Products/sos
 # You need an API key to access that API. For information on creating an account and getting
 # an API key see:
@@ -23,7 +24,7 @@ ADB_COORDINATSYSTEM_WGS_84_ID = 10
 
 
 def auth_headers(api_key, auth_token=None):
-    """Returns a dictionary of authentication headers."""
+    """Returns a dictionary of authentication headers for the SOS API."""
     h = {'Ocp-Apim-Subscription-Key': api_key}
     if auth_token:
         h['Authorization'] = 'Bearer {%s}' % (auth_token)
@@ -48,13 +49,8 @@ def print_http_response(r):
         pprint.pprint(r.json())
 
 
-def api_info_url():
-    """URL to info page about API."""
-    return "https://api-portal.artdatabanken.se/Products/sos"
-
-
 def ping_url():
-    """Returns the URL used to ping the API."""
+    """Returns the URL used to ping the SOS API."""
     return "%s%s%s" % (API_ROOT_URL, API_ROOT_PATH, API_PING_RESOURCE)
 
 
@@ -77,7 +73,7 @@ def observations_search_filter():
     return s
 
 
-class AdbObsAPI():
+class SOSAPI():
     """Represents the API."""
 
     def __init__(self, api_key):
@@ -164,6 +160,7 @@ class AdbObsAPI():
         else:
             url = url + "sensitiveObservations=false"
         headers = {**auth_headers(self.api_key), **{"Content-Type": "application/json"}}
+        print(headers)
         r = requests.post(url,
                           data=search_filter,
                           headers=headers)

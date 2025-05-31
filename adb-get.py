@@ -9,6 +9,7 @@ import os.path
 from datetime import datetime
 import dateutil.parser
 import requests
+import json
 import pprint
 import obsapi
 # from requests_oauthlib import OAuth2Session
@@ -22,7 +23,10 @@ ADB_OBSERVATIONS_API_KEY_ENV_NAME = 'ADB_OBSERVATIONS_API_KEY'
 ADB_API_ROOT_URL = 'https://api.artdatabanken.se'
 ADB_SPECIES_API_PATH = '/information/v1/speciesdataservice/v1/'
 ADB_OBSERVATIONS_SANDBOX_API_PATH = '/sandbox-observations-r/v2/'
+ADB_OBSERVATIONS_API_PATH = '/species-observation-system/v1/Observations/Search'
 ADB_COORDINATSYSTEM_WGS_84_ID = 10
+SEARCH_TEMPLATE_FILE = "search-template.json"
+AVES_TAXON_ID = 4000104
 
 
 def auth_headers(api_key, auth_token=None):
@@ -56,6 +60,24 @@ def observations_api_key():
         return os.environ[ADB_OBSERVATIONS_API_KEY_ENV_NAME]
     else:
         return None
+
+
+def literal_json_polygon_coordinates(file_name):
+    """String with literal JSON list of polygon coordinates from `file_name`."""
+    with open(file_name, 'r') as file:
+        text = file.readall()
+ 
+
+
+def search_json_body(from_date, to_date, polygon_coordinates, top_level_taxon_id=AVES_TAXON_ID):
+    """The JSON body to be used when doing a POST to the Observations API search resource."""
+    with open(SEARCH_TEMPLATE_FILE, 'r') as file:
+        body = json.load(file)
+    body = body.replace("%FROM_DATE%", from_date)
+    body = body.replace("%TO_DATE%", to_date)
+    body = body.replace("%GEO_POLOYGON_LIST_OF_COORDINATES%", polygon_coordinates)
+    body = body.replace("%TOP_LEVEL_TAXON%", top_level_taxon_id)
+    return body
 
 
 def print_http_response(r):
@@ -261,30 +283,28 @@ def main():
         sys.exit(0)
     if args.get_observations:
         result = None
-        if not args.taxon_id:
-            if not args.taxon_name:
-                print("Error: No taxon id (--taxon-id) or taxon name (--taxon-name) specified.")
-                sys.exit(2)
+        if args.taxon_name:
+            taxon_id = get_taxon_id_by_name(args, species_url, args.taxon_name)
+            if not taxon_id:
+                errmsg = (f"Error: No taxon with name '{args.taxon_name}' found "
+                          "in Artdatabankens Species API.")
+                print(errmsg)
+                sys.exit(3)
             else:
-                taxon_id = get_taxon_id_by_name(args, species_url, args.taxon_name)
-                if not taxon_id:
-                    errmsg = (f"Error: No taxon with name '{args.taxon_name}' found "
-                              "in Artdatabankens Species API.")
-                    print(errmsg)
-                    sys.exit(3)
-        else:
-            taxon_id = args.taxon_id
+                taxon_id = args.taxon_id
         if not args.use_production_api:
-            print("Info: Using observations SANDBOX API.")
+            if args.verbose:
+                print("Info: Using observations SANDBOX API.")
             observations_url = '%s%s' % (ADB_API_ROOT_URL, ADB_OBSERVATIONS_SANDBOX_API_PATH)
             api_key = observations_sandbox_api_key()
             result = get_observations(args, api_key, observations_url, taxon_id)
         else:
-            infomsg = ("Info: Using observations API. NOTE: This currently just does a predefined "
-                       "search and ignores the CLI arguments!")
-            print(infomsg)
+            if args.verbose:
+                infomsg = ("Info: Using observations API. NOTE: This currently just does a "
+                           " predefined search and ignores the CLI arguments!")
+                print(infomsg)
             api_key = observations_api_key()
-            api = obsapi.AdbObsAPI(api_key)
+            api = obsapi.SOSAPI(api_key)
             r = api.observations(obsapi.observations_search_filter())
             if r.status_code == 200:
                 pprint.pprint(r.json())
