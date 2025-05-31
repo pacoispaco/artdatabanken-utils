@@ -2,15 +2,15 @@
 
 This is a personal project to investigate what can be and what can't be done with with [Artdatabankens](https://api-portal.artdatabanken.se/) API:s. As of February 13, 2025, there are five API:s described here: https://api-portal.artdatabanken.se/docs/services.
 
-Artportalen is a public Swedish crowd science service for registering species observations. It is developed and run by the Swedish Species Information Centre" at the Swedish University of Agricultural Sciences (SLU - Sveriges Lantbruksuniversitet).
+Artportalen is a public Swedish crowd science service for registering species observations. It is developed and run by the Swedish Species Information Centre" at the Swedish University of Agricultural Sciences (SLU - Sveriges Lantbruksuniversitet). It 
 
-# Requirements
+## Requirements
 
 It is developed with Python 3. The current dependencies are to Python3 standard modules and  the 'requests' module.
 
 In order to call the Artdatabanken API:s you need to register and account there and get API keys for the API:s you intend to use. These tools currently use the Obeservations API and the Species API.
 
-# To get started
+## To get started
 
 Clone the repo:
 ```bash
@@ -27,7 +27,7 @@ Install the requirements:
 pip install -r requirements.txt
 ```
 
-# Trying out the Artportalen API:s
+## Trying out the Artportalen API:s
 
 You can always try out the API:s with Postman or command line tools like curl, wget or httpie.
 
@@ -35,13 +35,13 @@ This repo contains a [Postman API collections resource]("artdatbankens-apis.post
 
 The repo also contain a simple command line program **apget.py** which can be used to try out, learn and get data from the Artportalen API:s. See below.
 
-# Design
+## Design
 
-There is a module **artportalen.py** which contains a few methods for calling the Artportalen API:s. This module is intended to be reusable. It replaces a first attempt called **obsapi.py**.
+There is a module **artportalen.py** which contains a few methods for calling the Artportalen API:s. This module is intended to be reusable. It replaces a f*irst attempt called **obsapi.py**.
 
-The command line program **apget.py** uses the *artportalen.py** module, and is used when developing that module. It also showcases how the module can and is intended to be used. It replaces a first attempt **adb_get.py**.
+The command line program **apget.py** uses the **artportalen.py** module, and is used when developing that module. It also showcases how that module can, and is intended to be used. It replaces a first attempt **adb_get.py**.
 
-## apget.py
+### The apget.py program
 
 The program uses the module **obsapi**. You need two API keys to be set as the environment variables `ADB_OBSERVATIONS_API_KEY` and `ADB_SPECIES_API_KEY` for the program to work. Make sure you are in the local virtual environment and run:
 
