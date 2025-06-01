@@ -262,6 +262,9 @@ class SearchFilter:
 class ObservationsAPI:
     """Handles requests to Artportalens Species Observations Service API."""
 
+    # See the Observation object in the API for alternative attributes to sort by.
+    DEFAULT_SORT_BY_ATTRIBUTE_FOR_OBSERVATIONS = 'event.startDate'
+
     def __init__(self, api_key: str):
         """Initialization. The client is responsible for managing secrets."""
         self.key = api_key
@@ -323,8 +326,8 @@ class ObservationsAPI:
     def observations(self, search_filter: SearchFilter,
                      skip: int = 0,
                      take: int = 100,  # Maximum is 1000
-                     sortBy: str = None,
-                     sortOrder: str = None,  # "Asc" or "Desc"
+                     sortBy: str = DEFAULT_SORT_BY_ATTRIBUTE_FOR_OBSERVATIONS,
+                     sort_descending: bool = True,
                      validateSearchFilter: bool = False,  # Validation will be done.
                      translationCultureCode: str = None,  # "sv-SE" or "en-GB"
                      sensitiveObservations: bool = False,  # If true, only sensitive observations
@@ -334,6 +337,10 @@ class ObservationsAPI:
            the `search_filter` and the other request parameters.
            See: https://api-portal.artdatabanken.se/api-details#
            api=sos-api-v1&operation=Observations_ObservationsBySearch"""
+        if sort_descending:
+            sortOrder = 'Desc'
+        else:
+            sortOrder = 'Asc'
         url = self.search_url
         params = {"skip": skip,
                   "take": take,

@@ -37,31 +37,90 @@ The repo also contain a simple command line program **apget.py** which can be us
 
 ## Design
 
-There is a module **artportalen.py** which contains a few methods for calling the Artportalen API:s. This module is intended to be reusable. It replaces a f*irst attempt called **obsapi.py**.
+There is a module **artportalen.py** which contains classes and methods for calling the Artportalen API:s. This module is intended to be used as a reusable and simple Python interface to the API:s. It replaces a first attempt called **obsapi.py**.
 
 The command line program **apget.py** uses the **artportalen.py** module, and is used when developing that module. It also showcases how that module can, and is intended to be used. It replaces a first attempt **adb_get.py**.
 
-### The apget.py program
+### Notes on apget.py
 
 The program uses the module **obsapi**. You need two API keys to be set as the environment variables `ADB_OBSERVATIONS_API_KEY` and `ADB_SPECIES_API_KEY` for the program to work. Make sure you are in the local virtual environment and run:
 
 ```bash
-(env) $ export ADB_OBSERVATIONS_API_KEY=<API-gramKEY-1>
+(env) $ export ADB_OBSERVATIONS_API_KEY=<API-KEY-1>
 (env) $ export ADB_SPECIES_API_KEY=<API-KEY-2>
 (env) $ ./apget.py
 ```
 
-If you want to know what `apget.py` can do run it with:
-```
-$ ./adb-get.py -h
+If you want to know what `apget.py` can do, run it with:
+
+```bash
+$ ./apget.py -h
+usage: apget.py [-h] [-v] [-c CONF_FILE_PATH] [--taxon-id TAXON_ID]
+                [--taxon-name TAXON_NAME] [--pretty-print] [-V] [-g] [-s]
+                [-r] [--from-date FROM_DATE] [--to-date TO_DATE]
+                [--offset OFFSET] [--limit LIMIT]
+
+CLI-program for getting stuff from the Artdatabanken API:s. Note that you
+must set the two API keys as environment variables. Ie: export
+ADB_SPECIES_API_KEY=<API-KEY> export ADB_OBSERVATIONS_API_KEY=<API-KEY>
+
+options:
+  -h, --help            show this help message and exit
+  -v, --verbose         print info about what's going on [False].
+  -c CONF_FILE_PATH, --conf-file-path CONF_FILE_PATH
+                        Configuration file path [adb-get.conf].
+  --taxon-id TAXON_ID   Artdatabanken's taxon id
+  --taxon-name TAXON_NAME
+                        Artdatabanken's taxon name in Swedish
+  --pretty-print        Pretty print all info.
+  -V, --get-api-versions
+                        Get API versions.
+  -g, --get-observations
+                        Get observations [False]
+  -s, --show-search-filter
+                        Show the search filter used [False]. Use with '-g'
+  -r, --sort-reverse    Sort observations in reverse order [False]
+  --from-date FROM_DATE
+                        From date [1900-01-01T00:00]
+  --to-date TO_DATE     To date [2025-06-01T12:10]
+  --offset OFFSET       Offset [0]
+  --limit LIMIT         Limit [200]
 ```
 
-To get the first 200 observations of Tajgasångare or Yellow-browed warbler (*Phylloscopus inornatus*), with Artdatabanken taxon id 205835, since 1900-01-01 do:
+To get observations use the `-g/--get-observations` option:
+
 ```
-$ ./adb-get.py --get-observations --taxon-id=205835
+$ ./apget.py -g
+```
+That will return the first 200 observations, givet the default search criteria. 
+
+To get the first 200 observations of Tajgasångare or Yellow-browed warbler (*Phylloscopus inornatus*) since 1900-01-01, do:
+
+```
+$ ./apet.py --g --taxon-name=Tajgasångare
 ```
 
-Or get them by taxon name with:
+You can also use the taxon-id if you know that (for Tajgasångare or Yellow-browed warbler it is 205835):
+
 ```
-$ ./adb-get.py --get-observations --taxon-name=Tajgasångare
+$ ./apget.py --g --taxon-id=205835
 ```
+
+### Notes on artportalen.py
+
+This module has classes and methods for interacting with the Artportalen API:s. The core classes are:
+
+* **SpeciesAPI**. Represents the Artportalen SpeciesAPI and has methods for interacting with that API.
+* **ObservationsAPI**. Represents the Artportalen ObservationsAPI and has methods for interacting with that API.
+* **SearchFilter**. Represents the search filter to use as request body when doing a HTTP GET on the search resource in the Artportalen ObservationsAPI.
+
+It also contains these data model classes:
+
+* **Taxon**.
+* **Observation**.
+* **Person**.
+
+The documentation on the Artportalen API:s is somewhat lacking, and the design of the API:s is not resource-oriented (HTTP/REST-ish), but rather method-oriented (OO- and SOAP-ish). There is no proper introductory description of using the API:s, and there is incomplete documentation on some of the request parameters and the JSON-structures used. This does not provide a good developer experience and it enforces a cumbersome trial-and-error approach to using the API.
+
+As an example, the important HTTP resource (method) **Observations_ObservationsBySearch** in the ObservationsAPI, returns observations based on a search filter in JSON format sent in the HTTP POST request and a few request paramaters. Two of those request parameters are "sortBy" and "sortOrder", which affect the order of the returned observations. The only description of "sortBy" is that it is a string which specifies which "Field to sort by.". Nothing more. By trial and error I managed to figure out that "fields" refers to the named JSON-attributes in the individual "Observation" JSON-objects returned in the response object. So to sort the returned observations by date, I could use the request parameter `sortBy="event.startDate"`.
+

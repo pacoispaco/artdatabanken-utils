@@ -101,7 +101,7 @@ def today_RFC3339():
 
 
 def main():
-    desc = """CLI-program for getting stuff from the Artdatabanken API:s. note that you must set the
+    desc = """CLI-program for getting stuff from the Artdatabanken API:s. Note that you must set the
 two API keys as environment variables. Ie:
 export ADB_SPECIES_API_KEY=<API-KEY>
 export ADB_OBSERVATIONS_API_KEY=<API-KEY>"""
@@ -120,6 +120,10 @@ export ADB_OBSERVATIONS_API_KEY=<API-KEY>"""
                         help="Get API versions.")
     parser.add_argument('-g', '--get-observations', action='store_true', default=False,
                         help="Get observations [False]")
+    parser.add_argument('-s', '--show-search-filter', action='store_true', default=False,
+                        help="Show the search filter used [False]. Use with '-g'")
+    parser.add_argument('-r', '--sort-reverse', action='store_true', default=False,
+                        help="Sort observations in reverse order [False]")
     parser.add_argument('--from-date', default=DEFAULT_FROM_DATE_RFC3339,
                         help="From date [%s]" % (DEFAULT_FROM_DATE_RFC3339))
     s = today_RFC3339()
@@ -173,8 +177,15 @@ export ADB_OBSERVATIONS_API_KEY=<API-KEY>"""
         sfilter.set_dataProvider()
         if args.taxon_name:
             sfilter.set_taxon(ids=[taxon_id])
-        result = oapi.observations(sfilter, skip=args.offset, take=args.limit)
+        result = oapi.observations(sfilter,
+                                   skip=args.offset,
+                                   take=args.limit,
+                                   sort_descending=not args.sort_reverse)
         pprint.pprint(result)
+        if args.show_search_filter:
+            print("==============")
+            print("Search filter:")
+            pprint.pprint(sfilter.filter)
         sys.exit(0)
     elif args.taxon_id:
         pass
