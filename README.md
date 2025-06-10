@@ -1,18 +1,18 @@
-# artdatabanken-utils
+# Artdatabanken-utils
 
-This is a personal project to investigate what can be and what can't be done with with [Artdatabankens](https://api-portal.artdatabanken.se/) API:s. As of February 13, 2025, there are five API:s described here: https://api-portal.artdatabanken.se/docs/services.
+This is a personal project to investigate what can be and what can't be done with [Artdatabankens](https://api-portal.artdatabanken.se/) API:s. As of February 13, 2025, there are five API:s described here: https://api-portal.artdatabanken.se/docs/services.
 
-Artportalen is a public Swedish crowd science service for registering species observations. It is developed and run by the Swedish Species Information Centre" at the Swedish University of Agricultural Sciences (SLU - Sveriges Lantbruksuniversitet). It 
+Artportalen is a public Swedish crowd science service for registering species observations. It's developed and run by the Swedish Species Information Centre" at the Swedish University of Agricultural Sciences (SLU - Sveriges Lantbruksuniversitet).
 
 ## Requirements
 
-It is developed with Python 3. The current dependencies are to Python3 standard modules and  the 'requests' module.
+This is developed with Python 3. The current dependencies are to Python3 standard modules and  the 'requests' module.
 
-In order to call the Artdatabanken API:s you need to register and account there and get API keys for the API:s you intend to use. These tools currently use the Obeservations API and the Species API.
+In order to call the Artdatabanken API:s you need to register an account there and get API keys for the API:s you intend to use. These tools currently use the Obeservations API and the Species API.
 
 ## To get started
 
-Clone the repo:
+Clone this repo:
 ```bash
 git clone URL-TO-REPO
 ```
@@ -40,10 +40,10 @@ The repo also contain a simple command line program **apget.py** which can be us
 There is a module **artportalen.py** which contains classes and methods for calling the Artportalen API:s. This module is intended to be used as a reusable and simple Python interface to the API:s. It replaces a first attempt called **obsapi.py**.
 
 The command line program **apget.py** uses the **artportalen.py** module, and is used when developing that module. It also showcases how that module can, and is intended to be used. It replaces a first attempt **adb_get.py**.
-
+artportalen
 ### Notes on apget.py
 
-The program uses the module **obsapi**. You need two API keys to be set as the environment variables `ADB_OBSERVATIONS_API_KEY` and `ADB_SPECIES_API_KEY` for the program to work. Make sure you are in the local virtual environment and run:
+The program uses the module **artportalen**. You need two API keys to be set as the environment variables `ADB_OBSERVATIONS_API_KEY` and `ADB_SPECIES_API_KEY` for the program to work. Make sure you are in the local virtual environment and run:
 
 ```bash
 (env) $ export ADB_OBSERVATIONS_API_KEY=<API-KEY-1>
@@ -100,7 +100,7 @@ To get the first 200 observations of Tajgasångare or Yellow-browed warbler (*Ph
 $ ./apet.py --g --taxon-name=Tajgasångare
 ```
 
-You can also use the taxon-id if you know that (for Tajgasångare or Yellow-browed warbler it is 205835):
+You can also use the taxon-id if you know that (for Tajgasångare or Yellow-browed warbler it's 205835):
 
 ```
 $ ./apget.py --g --taxon-id=205835
@@ -122,5 +122,5 @@ It also contains these data model classes:
 
 The documentation on the Artportalen API:s is somewhat lacking, and the design of the API:s is not resource-oriented (HTTP/REST-ish), but rather method-oriented (OO- and SOAP-ish). There is no proper introductory description of using the API:s, and there is incomplete documentation on some of the request parameters and the JSON-structures used. This does not provide a good developer experience and it enforces a cumbersome trial-and-error approach to using the API.
 
-As an example, the important HTTP resource (method) **Observations_ObservationsBySearch** in the ObservationsAPI, returns observations based on a search filter in JSON format sent in the HTTP POST request and a few request paramaters. Two of those request parameters are "sortBy" and "sortOrder", which affect the order of the returned observations. The only description of "sortBy" is that it is a string which specifies which "Field to sort by.". Nothing more. By trial and error I managed to figure out that "fields" refers to the named JSON-attributes in the individual "Observation" JSON-objects returned in the response object. So to sort the returned observations by date, I could use the request parameter `sortBy="event.startDate"`.
+As an example, the important HTTP resource (method) **Observations_ObservationsBySearch** in the ObservationsAPI, returns observations based on a search filter in JSON format sent in the HTTP POST request and a few request parameters. Two of those request parameters are "sortBy" and "sortOrder", which affect the order of the returned observations. The only description of "sortBy" is that it's a string which specifies which "Field to sort by.". Nothing more. By trial and error I managed to figure out that "fields" refers to the named JSON-attributes in the individual "Observation" JSON-objects returned in the response object. So to sort the returned observations by date, I could use the request parameter `sortBy="event.startDate"`.
 
