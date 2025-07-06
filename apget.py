@@ -155,9 +155,7 @@ export ADB_OBSERVATIONS_API_KEY=<API-KEY>"""
         print("Get observations")
         result = None
         if args.taxon_name:
-            print(f"Taxon name: {args.taxon_name}")
             species = sapi.species_by_name(args.taxon_name)
-            print(f"species: {species}")
             if not species:
                 errmsg = (f"Error: No species with name '{args.taxon_name}' found "
                           "in Artdatabankens Species API.")
@@ -166,9 +164,7 @@ export ADB_OBSERVATIONS_API_KEY=<API-KEY>"""
             else:
                 taxon_id = species[0]["taxonId"]
         elif args.taxon_id:
-            print(f"Taxon id: {args.taxon_id}")
             species = sapi.species_by_id(args.taxon_id)
-            print(f"species: {species}")
             if not species:
                 errmsg = (f"Error: No species with id '{args.taxon_id}' found "
                           "in Artdatabankens Species API.")
@@ -192,7 +188,6 @@ export ADB_OBSERVATIONS_API_KEY=<API-KEY>"""
                                    skip=args.offset,
                                    take=args.limit,
                                    sort_descending=not args.sort_reverse)
-        pprint.pprint(result)
         if args.show_search_filter:
             print("==============")
             print("Search filter:")
