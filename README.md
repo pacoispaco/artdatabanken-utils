@@ -29,7 +29,7 @@ pip install -r requirements.txt
 
 ## Trying out the Artportalen API:s
 
-You can always try out the API:s with Postman or command line tools like curl, wget or httpie.
+You can always try out the API:s with Postman or command line tools like curl, wget or http (httpie).
 
 This repo contains a [Postman API collections resource]("artdatbankens-apis.postman.json") that can be imported into Postman for trying out some API calls.
 
@@ -41,6 +41,7 @@ There is a module **artportalen.py** which contains classes and methods for call
 
 The command line program **apget.py** uses the **artportalen.py** module, and is used when developing that module. It also showcases how that module can, and is intended to be used. It replaces a first attempt **adb_get.py**.
 artportalen
+
 ### Notes on apget.py
 
 The program uses the module **artportalen**. You need two API keys to be set as the environment variables `ADB_OBSERVATIONS_API_KEY` and `ADB_SPECIES_API_KEY` for the program to work. Make sure you are in the local virtual environment and run:
