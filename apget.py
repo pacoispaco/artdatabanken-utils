@@ -114,6 +114,10 @@ export ADB_OBSERVATIONS_API_KEY=<API-KEY>"""
                         help="Artdatabanken's taxon id")
     parser.add_argument('--taxon-name',
                         help="Artdatabanken's taxon name in Swedish")
+    parser.add_argument('--exact-match', action='store_true', default=False,
+                        help="Do exact match on taxon name [False]")
+    parser.add_argument('--print-full-taxon-info', action='store_true', default=False,
+                        help="Print full info on every taxon [False]")
     parser.add_argument('--pretty-print', action='store_true', default=False,
                         help="Pretty print all info.")
     parser.add_argument('-V', '--get-api-versions', action='store_true', default=False,
@@ -134,7 +138,6 @@ export ADB_OBSERVATIONS_API_KEY=<API-KEY>"""
     parser.add_argument('--limit', default=200,
                         help="Limit [200]")
     args = parser.parse_args()
-    species_url = '%s%s' % (ADB_API_ROOT_URL, ADB_SPECIES_API_PATH)
     if not species_api_key():
         print("Error: Environment variable ADB_SPECIES_API_KEY not set.")
         sys.exit(1)
@@ -143,30 +146,58 @@ export ADB_OBSERVATIONS_API_KEY=<API-KEY>"""
         sys.exit(1)
     sapi = artportalen.SpeciesAPI(species_api_key())
     oapi = artportalen.ObservationsAPI(observations_api_key())
-    if not args.get_api_versions and not args.get_observations:
-        print("Use options '-g/--get-observations' or '-V/--get-api-versions' to call the API:s.")
     if args.get_api_versions:
         v = oapi.version(args.verbose)
         print("Observations API:")
         pprint.pprint(v)
         print("Species API: No API resource for version")
         sys.exit(0)
+    if args.taxon_name and args.taxon_id:
+        print("Error: Flags --taxon-name and --taxon-id cannot be used at the same time.")
+        sys.exit(1)
+    if args.taxon_name:
+        taxa = sapi.taxa_by_name(args.taxon_name,
+                                 exact_match=args.exact_match,
+                                 verbose=args.verbose)
+        if not taxa:
+            errmsg = (f"No taxon/taxa with name '{args.taxon_name}' found "
+                      "in Artdatabankens Species API.")
+            print(errmsg)
+            sys.exit(4)
+        if not args.get_observations:
+            # Then we print info on the named taxon/taxa
+            if args.print_full_taxon_info:
+                for taxon in taxa:
+                    taxon_data = sapi.taxon_by_id(taxon['taxonId'], verbose=args.verbose)
+                    pprint.pprint(taxon_data)
+            else:
+                pprint.pprint(taxa)
+            print(f"Number of taxa: {len(taxa)}")
+    if args.taxon_id:
+        taxon_data = sapi.taxon_by_id(args.taxon_id, verbose=args.verbose)
+        if not taxon_data:
+            errmsg = (f"No taxon with id '{args.taxon_id}' found "
+                      "in Artdatabankens Species API.")
+            print(errmsg)
+            sys.exit(5)
+        if not args.get_observations:
+            # Then we print info on the taxon
+            pprint.pprint(taxon_data)
     if args.get_observations:
-        print("Get observations")
         result = None
         if args.taxon_name:
-            species = sapi.species_by_name(args.taxon_name)
-            if not species:
-                errmsg = (f"Error: No species with name '{args.taxon_name}' found "
+            taxa = sapi.taxa_by_name(args.taxon_name)
+            if not taxa:
+                errmsg = (f"Error: No taxon with name '{args.taxon_name}' found "
                           "in Artdatabankens Species API.")
                 print(errmsg)
                 sys.exit(3)
             else:
-                taxon_id = species[0]["taxonId"]
+                taxon_id = taxa[0]["taxonId"]
         elif args.taxon_id:
-            species = sapi.species_by_id(args.taxon_id)
-            if not species:
-                errmsg = (f"Error: No species with id '{args.taxon_id}' found "
+            taxon = sapi.taxon_by_id(args.taxon_id)
+            if not taxon:
+                errmsg = (f"Error: No taxon with id '{args.taxon_id}' found "
                           "in Artdatabankens Species API.")
                 print(errmsg)
                 sys.exit(4)
@@ -188,39 +219,11 @@ export ADB_OBSERVATIONS_API_KEY=<API-KEY>"""
                                    skip=args.offset,
                                    take=args.limit,
                                    sort_descending=not args.sort_reverse)
+        pprint.pprint(result)
         if args.show_search_filter:
             print("==============")
             print("Search filter:")
             pprint.pprint(sfilter.filter)
-        sys.exit(0)
-    elif args.taxon_id:
-        pass
-#        sapi.species_by_id()
-#        t = get_taxon_by_id(args, species_url, args.taxon_id)
-#        if t:
-#            if args.pretty_print:
-#                pretty_print_taxon(t[0])
-#            else:
-#                pprint.pprint(t)
-#        else:
-#            errmsg = (f"Error: No taxon with id '{args.taxon_id}' found in Artdatabanken's Species "
-#                      "API")
-#            print(errmsg)
-#            sys.exit(3)
-#        sys.exit(0)
-    if args.taxon_name:
-        taxon_id = sapi.species_by_name(args.taxon_name)
-        print(taxon_id)
-        if not taxon_id:
-            errmsg = (f"Error: No taxon with name '{args.taxon_name}' found in Artdatabanken's "
-                      "Species API.")
-            print(errmsg)
-            sys.exit(4)
-        t = get_taxon_by_id(args, species_url, taxon_id)
-        if args.pretty_print:
-            pretty_print_taxon(t[0])
-        else:
-            pprint.pprint(t)
         sys.exit(0)
 
 

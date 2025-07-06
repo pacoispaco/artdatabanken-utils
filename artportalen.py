@@ -107,23 +107,27 @@ class SpeciesAPI:
         self.search_url = self.url + "speciesdata"
         self.headers = auth_headers(self.key)
 
-    def species_by_name(self, name, exact_match=True, verbose=False):
-        """Returns list of all species that match the name."""
+    def taxa_by_name(self, name, exact_match=True, verbose=False):
+        """Returns list of all taxa that match the name."""
         url = self.search_url + f"/search?searchString={name}"
         r = requests.get(url, headers=self.headers)
         if verbose:
             print('GET %s' % url)
             print_http_response(r)
-        for d in r.json():
-            if exact_match:
-                if d['swedishName'] == name.lower():
-                    return [d]
-            else:
-                return r.json()
+        if r.status_code == 200:
+            for d in r.json():
+                if exact_match:
+                    if d['swedishName'] == name.lower():
+                        return [d]
+                else:
+                    return r.json()
+        else:
+            if verbose:
+                print("Something went wrong in the API request.")
         return None
 
-    def species_by_id(self, id, verbose=False):
-        """Returns the species with the given id."""
+    def taxon_by_id(self, id, verbose=False):
+        """Returns the taxon with the given id."""
         url = self.search_url + f"?taxa={id}"
         r = requests.get(url, headers=self.headers)
         if verbose:
