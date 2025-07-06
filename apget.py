@@ -136,10 +136,10 @@ export ADB_OBSERVATIONS_API_KEY=<API-KEY>"""
     args = parser.parse_args()
     species_url = '%s%s' % (ADB_API_ROOT_URL, ADB_SPECIES_API_PATH)
     if not species_api_key():
-        print("Error: Species API key set as environment variable ADB_SPECIES_API_KEY.")
+        print("Error: Environment variable ADB_SPECIES_API_KEY not set.")
         sys.exit(1)
     if not observations_api_key():
-        print("Error: Observations API key set as environment variable ADB_OBSERVATIONS_API_KEY.")
+        print("Error: Environment variable ADB_OBSERVATIONS_API_KEY not set.")
         sys.exit(1)
     sapi = artportalen.SpeciesAPI(species_api_key())
     oapi = artportalen.ObservationsAPI(observations_api_key())
@@ -165,6 +165,17 @@ export ADB_OBSERVATIONS_API_KEY=<API-KEY>"""
                 sys.exit(3)
             else:
                 taxon_id = species[0]["taxonId"]
+        elif args.taxon_id:
+            print(f"Taxon id: {args.taxon_id}")
+            species = sapi.species_by_id(args.taxon_id)
+            print(f"species: {species}")
+            if not species:
+                errmsg = (f"Error: No species with id '{args.taxon_id}' found "
+                          "in Artdatabankens Species API.")
+                print(errmsg)
+                sys.exit(4)
+            else:
+                taxon_id = args.taxon_id
         sfilter = artportalen.SearchFilter()
         sfilter.set_geographics_areas(areas=[{"area_type": "Municipality", "featureId": "180"}])
         sfilter.set_verification_status()
@@ -175,7 +186,7 @@ export ADB_OBSERVATIONS_API_KEY=<API-KEY>"""
                          timeRanges=[])
         sfilter.set_modified_date()
         sfilter.set_dataProvider()
-        if args.taxon_name:
+        if args.taxon_name or args.taxon_id:
             sfilter.set_taxon(ids=[taxon_id])
         result = oapi.observations(sfilter,
                                    skip=args.offset,
